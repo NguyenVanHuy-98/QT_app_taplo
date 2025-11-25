@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/backgroud">
+        <file>image/Taplo_GUi.jpg</file>
+    </qresource>
+    <qresource prefix="/turn-signal">
+        <file>image/Re-Phai.jpg</file>
+        <file>image/Re-Trai.jpg</file>
+    </qresource>
+</RCC>

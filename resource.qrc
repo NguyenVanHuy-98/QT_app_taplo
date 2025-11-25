@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/new/image">
+        <file>image/Taplo_GUi.jpeg</file>
+    </qresource>
+    <qresource prefix="/image2"/>
+    <qresource prefix="/xinhanh"/>
+</RCC>
