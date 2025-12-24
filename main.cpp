@@ -236,6 +236,7 @@ void *get_can_msg(void *arg)
     if (ioctl(s, SIOCGIFINDEX, &ifr) < 0) {
         perror("SIOCGIFINDEX");
         close(s);
+        return NULL;
     }
 
     /* 3) Bind socket vào interface đó */
@@ -273,7 +274,7 @@ void *get_can_msg(void *arg)
             perror("read");
             break;
         } else if (nbytes < (ssize_t)sizeof(struct can_frame)) {
-            fprintf(stderr, "read: incomplete CAN frame\n");
+            fprintf(stderr, "read: incomplete CAN frame (%zd bytes)\n", nbytes);
             continue;
         }
 
@@ -283,6 +284,10 @@ void *get_can_msg(void *arg)
             printf(" %02X", frame.data[i]);
         }
         printf("\n");
+        if (frame.can_dlc < 2) {
+            continue;
+        }
+
         uint16_t read_adc = ((uint16_t)frame.data[1] << 8) | (uint16_t)frame.data[0];
         printf("adc : %u\n",read_adc) ;
 
@@ -290,6 +295,7 @@ void *get_can_msg(void *arg)
                                   "showSpeed",
                                   Qt::QueuedConnection,
                                   Q_ARG(int, read_adc));
+
     }
 
     close(s);
