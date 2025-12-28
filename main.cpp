@@ -307,8 +307,8 @@ int main(int argc, char *argv[])
     MainWindow w;
     w.show();
     pthread_t t1, t2, t3;
-    pthread_create(&t1, NULL, control_led, NULL);
-    pthread_create(&t2, NULL, read_button, NULL);
+    //pthread_create(&t1, NULL, control_led, NULL);
+    //pthread_create(&t2, NULL, read_button, NULL);
     //pthread_create(&t3, NULL, get_can_msg, NULL);
     return a.exec();
 }
