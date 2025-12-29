@@ -218,87 +218,87 @@ void *get_can_msg(void *arg)
                               "showSpeed",
                               Qt::QueuedConnection,
                               Q_ARG(int, 0));
-    // const char *ifname = "can0";
+    const char *ifname = "can0";
 
-    // int s;
-    // struct ifreq ifr;
-    // struct sockaddr_can addr;
+    int s;
+    struct ifreq ifr;
+    struct sockaddr_can addr;
 
-    // s = socket(PF_CAN, SOCK_RAW, CAN_RAW);
-    // if (s < 0) {
-    //     perror("socket");
-    //     return NULL;
-    // }
+    s = socket(PF_CAN, SOCK_RAW, CAN_RAW);
+    if (s < 0) {
+        perror("socket");
+        return NULL;
+    }
 
-    // /* 2) Lấy chỉ số interface (ifindex) từ tên, ví dụ "main_dcan1" */
-    // memset(&ifr, 0, sizeof(ifr));
-    // snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "%s", ifname);
-    // if (ioctl(s, SIOCGIFINDEX, &ifr) < 0) {
-    //     perror("SIOCGIFINDEX");
-    //     close(s);
-    //     return NULL;
-    // }
+    /* 2) Lấy chỉ số interface (ifindex) từ tên, ví dụ "main_dcan1" */
+    memset(&ifr, 0, sizeof(ifr));
+    snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "%s", ifname);
+    if (ioctl(s, SIOCGIFINDEX, &ifr) < 0) {
+        perror("SIOCGIFINDEX");
+        close(s);
+        return NULL;
+    }
 
-    // /* 3) Bind socket vào interface đó */
-    // memset(&addr, 0, sizeof(addr));
-    // addr.can_family  = AF_CAN;
-    // addr.can_ifindex = ifr.ifr_ifindex;
+    /* 3) Bind socket vào interface đó */
+    memset(&addr, 0, sizeof(addr));
+    addr.can_family  = AF_CAN;
+    addr.can_ifindex = ifr.ifr_ifindex;
 
-    // if (bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-    //     perror("bind");
-    //     close(s);
-    //     return NULL;
-    // }
+    if (bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+        perror("bind");
+        close(s);
+        return NULL;
+    }
 
-    // /* 4) (Tùy chọn) Thiết lập filter: chỉ nhận frame ID 0x123 */
-    // struct can_filter rfilter[1];
-    // rfilter[0].can_id   = 0x123;
-    // rfilter[0].can_mask = CAN_SFF_MASK;       // 11-bit ID
-    // if (setsockopt(s, SOL_CAN_RAW, CAN_RAW_FILTER,
-    //                &rfilter, sizeof(rfilter)) < 0) {
-    //     perror("setsockopt filter");
-    //     close(s);
-    //     return NULL;
-    // }
+    /* 4) (Tùy chọn) Thiết lập filter: chỉ nhận frame ID 0x123 */
+    struct can_filter rfilter[1];
+    rfilter[0].can_id   = 0x123;
+    rfilter[0].can_mask = CAN_SFF_MASK;       // 11-bit ID
+    if (setsockopt(s, SOL_CAN_RAW, CAN_RAW_FILTER,
+                   &rfilter, sizeof(rfilter)) < 0) {
+        perror("setsockopt filter");
+        close(s);
+        return NULL;
+    }
 
-    // printf("Listening on %s for CAN frames (ID 0x123)...\n", ifname);
-    // //data_t* can_data = NULL;
+    printf("Listening on %s for CAN frames (ID 0x123)...\n", ifname);
+    //data_t* can_data = NULL;
 
-    // /* 5) Vòng lặp nhận frame */
-    // while (1) {
+    /* 5) Vòng lặp nhận frame */
+    while (1) {
 
-    //     struct can_frame frame;
-    //     ssize_t nbytes = read(s, &frame, sizeof(frame));
+        struct can_frame frame;
+        ssize_t nbytes = read(s, &frame, sizeof(frame));
 
-    //     if (nbytes < 0) {
-    //         perror("read");
-    //         break;
-    //     } else if (nbytes < (ssize_t)sizeof(struct can_frame)) {
-    //         fprintf(stderr, "read: incomplete CAN frame (%zd bytes)\n", nbytes);
-    //         continue;
-    //     }
+        if (nbytes < 0) {
+            perror("read");
+            break;
+        } else if (nbytes < (ssize_t)sizeof(struct can_frame)) {
+            fprintf(stderr, "read: incomplete CAN frame (%zd bytes)\n", nbytes);
+            continue;
+        }
 
-    //     printf("ID=0x%03X DLC=%d Data=", frame.can_id & CAN_SFF_MASK, frame.can_dlc);
+        printf("ID=0x%03X DLC=%d Data=", frame.can_id & CAN_SFF_MASK, frame.can_dlc);
 
-    //     for (int i = 0; i < frame.can_dlc; i++) {
-    //         printf(" %02X", frame.data[i]);
-    //     }
-    //     printf("\n");
-    //     if (frame.can_dlc < 2) {
-    //         continue;
-    //     }
+        for (int i = 0; i < frame.can_dlc; i++) {
+            printf(" %02X", frame.data[i]);
+        }
+        printf("\n");
+        if (frame.can_dlc < 2) {
+            continue;
+        }
 
-    //     uint16_t read_adc = ((uint16_t)frame.data[1] << 8) | (uint16_t)frame.data[0];
-    //     printf("adc : %u\n",read_adc) ;
+        uint16_t read_adc = ((uint16_t)frame.data[1] << 8) | (uint16_t)frame.data[0];
+        printf("adc : %u\n",read_adc) ;
 
-    //     QMetaObject::invokeMethod(MainWindow::instance,
-    //                               "showSpeed",
-    //                               Qt::QueuedConnection,
-    //                               Q_ARG(int, read_adc));
+        QMetaObject::invokeMethod(MainWindow::instance,
+                                  "showSpeed",
+                                  Qt::QueuedConnection,
+                                  Q_ARG(int, read_adc));
 
-    // }
+    }
 
-    // close(s);
+    close(s);
 }
 
 int main(int argc, char *argv[])
@@ -309,7 +309,7 @@ int main(int argc, char *argv[])
     pthread_t t1, t2, t3;
     pthread_create(&t1, NULL, control_led, NULL);
     pthread_create(&t2, NULL, read_button, NULL);
-    //pthread_create(&t3, NULL, get_can_msg, NULL);
+    pthread_create(&t3, NULL, get_can_msg, NULL);
     return a.exec();
 }
 
